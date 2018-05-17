@@ -12,7 +12,7 @@ Capybara.configure do |config|
   config.run_server = false
   config.javascript_driver = :poltergeist
   config.app_host = "https://database.yomiuri.co.jp" # 学内
-  # config.app_host = "" # 学外
+  # config.app_host = "https://database.yomiuri.co.jp.ez.wul.waseda.ac.jp" # 学外ではapp_hostを使わない
   config.default_max_wait_time = 30
   config.ignore_hidden_elements = false
 end
@@ -34,15 +34,13 @@ def login_inside_univ
 end
 
 def login_outside_univ
-  # visit "http://www.wul.waseda.ac.jp.ez.wul.waseda.ac.jp/DOMEST/db_about/dna/dna.html"
-  # fill_in "user", :with => ARGV[0]
-  # fill_in "pass", :with => ARGV[1]
-  # all("input")[3].trigger("click")
-  # sleep(5)
-  # visit find("a.A_button")[:href]
-  # sleep(5)
-  # all("#contentMain a")[0].trigger("click")
-  # sleep(10)
+  visit "http://www.wul.waseda.ac.jp.ez.wul.waseda.ac.jp/DOMEST/db_about/yomiuri/yomidas.html"
+  fill_in "user", :with => ARGV[0]
+  fill_in "pass", :with => ARGV[1]
+  all("input")[3].trigger("click")
+  sleep(5)
+  visit find("a.A_button")[:href]
+  sleep(5)
 end
 
 def search
@@ -90,7 +88,7 @@ def get_search_result
   end
 end
 
-# login_outside_univ
-login_inside_univ
+login_outside_univ
+# login_inside_univ
 search
 get_search_result
