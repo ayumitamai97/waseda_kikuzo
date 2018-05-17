@@ -29,8 +29,8 @@ page.driver.headers = { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10
 page.driver.resize_window(1200, 768)
 
 def login_inside_univ
-  visit "/aps/WMSK/main.jsp?uji.verb=GSHWA0300&serviceid=WMSK"
-  # all("#contentMain a")[0].trigger("click")
+  visit "https://mainichi.jp/contents/edu/maisaku/login.html"
+  all(".contents_SA a")[0].trigger("click")
   sleep(5)
 end
 
@@ -47,22 +47,22 @@ def login_outside_univ
 end
 
 def search
-  # conditions = %w(詳細検索 朝日新聞デジタル アエラ 地域面 大阪 名古屋 西部 北海道)
-  # within_frame(all("frame")[1]) do
-  #   conditions.each do |condition|
-  #     find("label", text: condition).trigger("click")
-  #   end
-  #   all("label", text: "週刊朝日")[1].trigger("click")
-  #   fill_in("txtWord", with: "訪日&中国人")
-  #   all("#optNotNavi6 select")[0].find("option[value='2015']").select_option
-  #   all("#optNotNavi6 select")[1].find("option[value='01']").select_option
-  #   all("#optNotNavi6 select")[2].find("option[value='01']").select_option
-  #   all("#optNotNavi6 select")[4].find("option[value='2015']").select_option
-  #   all("#optNotNavi6 select")[5].find("option[value='12']").select_option
-  #   all("#optNotNavi6 select")[6].find("option[value='31']").select_option
-  #   all("input.btext")[0].trigger("click")
-  #   sleep(5)
-  # end
+  visit "/aps/WMSK/main.jsp?uji.verb=GSHWA0300&serviceid=WMSK"
+  sleep(15)
+  binding.pry
+  all("tr.middle label")[1].trigger("click")
+  all("tr.middle label")[72].trigger("click")
+  fill_in("paraTi", with: "訪日 AND 中国人")
+  find("select#paraYearFrom").find("option[value='2015']").select_option
+  find("select#paraMonthFrom").find("option[value='1']").select_option
+  find("select#paraDayFrom").find("option[value='1']").select_option
+  all("select")[4].find("option[value='2']").select_option
+  find("select#paraYearTo").find("option[value='2015']").select_option
+  find("select#paraMonthTo").find("option[value='12']").select_option
+  find("select#paraDayTo").find("option[value='31']").select_option
+  # all("input.btext")[0].trigger("click")
+  save_screenshot "1.png"
+  sleep(5)
 end
 
 def get_search_result
