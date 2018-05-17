@@ -11,8 +11,8 @@ Capybara.current_driver = :poltergeist
 Capybara.configure do |config|
   config.run_server = false
   config.javascript_driver = :poltergeist
-  # config.app_host = "http://database.asahi.com" # 学内
-  config.app_host = "http://database.asahi.com.ez.wul.waseda.ac.jp" # 学外
+  config.app_host = "http://database.asahi.com" # 学内
+  # config.app_host = "http://database.asahi.com.ez.wul.waseda.ac.jp" # 学外ではapp_hostを使わない
   config.default_max_wait_time = 30
   config.ignore_hidden_elements = false
 end
