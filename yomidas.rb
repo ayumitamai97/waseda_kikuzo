@@ -63,24 +63,34 @@ def search
   end
 end
 
+def get_trs
+  posts_num = all(".flR")[0].text.gsub("件", "").split("～")
+  page_posts_num = posts_num[1].to_i - (posts_num[0].to_i - 2)
+  for nth_tr in 0..page_posts_num # なぜか0..100じゃない？
+    within(all("tr")[nth_tr]) do
+      $data << []
+      all(".contentsTable th").each do |th|
+        $data[nth_tr] << th.text
+      end
+      td_count = -1
+      all(".contentsTable td").each do |td|
+        td_count += 1
+        $data[nth_tr] << td.text
+      end
+    end
+  end
+end
+
 def get_search_result
   CSV.open("yomidas_data.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
-      for nth_tr in 0..101 # なぜか0..50じゃない？
-        within(all("tr")[nth_tr]) do
-          $data << []
-          all(".contentsTable th").each do |th|
-            $data[nth_tr] << th.text
-          end
-          td_count = -1
-          all(".contentsTable td").each do |td|
-            td_count += 1
-            $data[nth_tr] << td.text
-            $data[nth_tr] << td[:href] if td_count == 2
-          end
-        end
-      end # end of nth_tr
+      get_trs
+      evaluate_script(
+        "pageSortSubmit('yomiuriNewsPageSearchList.action',
+         'search', 100, '0', 'DESC', 'PBLSDT');return false;") # 2ページ目用
+      sleep(5)
+      get_trs
     end # end if within_frame
     csv_data = CSV.generate() do |csv|
       $data.each do |d|
