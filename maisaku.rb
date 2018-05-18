@@ -20,8 +20,8 @@ end
 Capybara.register_driver :poltergeist do |app|
   Capybara::Poltergeist::Driver.new(app, {:timeout=>120, :js=>true, :js_errors=>false,
   :phantomjs => Phantomjs.path,
-  # :phantomjs_options => ['--ssl-protocol=default', '--ignore-ssl-errors=false']
-  :phantomjs_options => ['--ssl-protocol=any', '--ignore-ssl-errors=true'] # この行は外部WiFi用
+  :phantomjs_options => ['--ssl-protocol=default', '--ignore-ssl-errors=false']
+  # :phantomjs_options => ['--ssl-protocol=any', '--ignore-ssl-errors=true'] # この行は外部WiFi用
   })
 end
 
@@ -66,15 +66,22 @@ def search
 end
 
 def get_search_result
-  binding.pry
   all(".btnAreaCenter input")[0].trigger("click") # 一覧表示
   sleep(5)
   CSV.open("maisaku_data.csv", "w") do |csv|
     $data = []
-    for nth_tr in 0..20 # 検索記事数に合わせて変える
+    for nth_tr in 0..19 # 検索記事数に合わせて変える
       within(all("table.resultList tr")[nth_tr]) do
-        binding.pry
-        # $data << all("td")[2].text.split(" ")
+        $data << []
+        array = all("td")[2].text.split(" ")
+        for num in -5..-1
+          array.delete_at(num)
+        end
+        $data[nth_tr] << array.join(" ") # 記事タイトル
+        array = all("td")[2].text.split(" ") # 取得し直し
+        for num in -5..-1
+          $data[nth_tr] << array[num] # タイトル以外
+        end
       end
     end # end of nth_tr
     csv_data = CSV.generate() do |csv|
