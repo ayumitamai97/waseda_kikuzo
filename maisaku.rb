@@ -20,7 +20,9 @@ end
 Capybara.register_driver :poltergeist do |app|
   Capybara::Poltergeist::Driver.new(app, {:timeout=>120, :js=>true, :js_errors=>false,
   :phantomjs => Phantomjs.path,
-  :phantomjs_options => ['--ssl-protocol=default', '--ignore-ssl-errors=false']})
+  # :phantomjs_options => ['--ssl-protocol=default', '--ignore-ssl-errors=false']
+  :phantomjs_options => ['--ssl-protocol=any', '--ignore-ssl-errors=true'] # この行は外部WiFi用
+  })
 end
 
 include Capybara::DSL # 警告が出るが動く
@@ -41,6 +43,7 @@ def login_outside_univ
   sleep(5)
   visit find("a.A_button")[:href]
   sleep(5)
+  puts "Successfully logged in: current url is " + current_url
 end
 
 def search
@@ -58,33 +61,29 @@ def search
   find("select#paraMonthTo").find("option[value='12']").select_option
   find("select#paraDayTo").find("option[value='31']").select_option
   all("input")[15].trigger("click") # 検索開始
+  puts "Starting to search: current url is " + current_url
   sleep(10)
 end
 
 def get_search_result
+  binding.pry
   all(".btnAreaCenter input")[0].trigger("click") # 一覧表示
   sleep(5)
   CSV.open("maisaku_data.csv", "w") do |csv|
     $data = []
     for nth_tr in 0..20 # 検索記事数に合わせて変える
-      $data << []
       within(all("table.resultList tr")[nth_tr]) do
-        # for nth_td in 0..20
-        # binding.pry
-          # p all("td a")[0].text
-          p all("td")[0].text
-          # p all("td a")[nth_td].text
-          # p all("td")[nth_td].text.gsub(all("td a")[nth_td].text, "")
-        # end
+        binding.pry
+        # $data << all("td")[2].text.split(" ")
       end
     end # end of nth_tr
-    # csv_data = CSV.generate() do |csv|
-    #   $data.each do |d|
-    #     csv << d
-    #   end
-    # end
-    # csv_data.gsub!('"', '') # とりあえず
-    # csv << [csv_data]
+    csv_data = CSV.generate() do |csv|
+      $data.each do |d|
+        csv << d
+      end
+    end
+    csv_data.gsub!('"', '') # とりあえず
+    csv << [csv_data]
   end
 end
 
