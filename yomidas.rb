@@ -49,6 +49,7 @@ def search
     fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "訪日 AND 中国人")
     all("label", text: "個別に選択する")[0].trigger("click") # 全国版・地域版
     find("label", text: "全国版").trigger("click") # 全国版・地域版
+    find("label", text: "100").trigger("click") # 記事100件取得
     fill_in("yomiuriNewsSearchDto.txtSYear", with: "2015")
     fill_in("yomiuriNewsSearchDto.txtSMonth", with: "1")
     fill_in("yomiuriNewsSearchDto.txtSDay", with: "1")
@@ -66,14 +67,17 @@ def get_search_result
   CSV.open("yomidas_data.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
-      for nth_tr in 0..51 # なぜか0..50じゃない？
+      for nth_tr in 0..101 # なぜか0..50じゃない？
         within(all("tr")[nth_tr]) do
           $data << []
           all(".contentsTable th").each do |th|
             $data[nth_tr] << th.text
           end
+          td_count = -1
           all(".contentsTable td").each do |td|
+            td_count += 1
             $data[nth_tr] << td.text
+            $data[nth_tr] << td[:href] if td_count == 2
           end
         end
       end # end of nth_tr
