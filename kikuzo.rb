@@ -1,3 +1,5 @@
+# ruby kikuzo.rb ID PASSWORD YEAR
+
 require "capybara"
 require "capybara/dsl"
 require "capybara/poltergeist"
@@ -35,46 +37,55 @@ def login_inside_univ
 end
 
 def login_outside_univ
-  visit "http://www.wul.waseda.ac.jp.ez.wul.waseda.ac.jp/DOMEST/db_about/dna/dna.html"
-  fill_in "user", :with => ARGV[0]
-  fill_in "pass", :with => ARGV[1]
-  all("input")[3].trigger("click")
-  sleep(5)
-  visit find("a.A_button")[:href]
+  begin
+    visit "http://www.wul.waseda.ac.jp.ez.wul.waseda.ac.jp/DOMEST/db_about/dna/dna.html"
+    fill_in "user", :with => ARGV[0]
+    fill_in "pass", :with => ARGV[1]
+    all("input")[3].trigger("click")
+    sleep(5)
+    visit find("a.A_button")[:href]
+  rescue
+    retry
+  end
   sleep(5)
   all("#contentMain a")[0].trigger("click")
-  sleep(10)
+  sleep(20) # ここで読み込みきれないとTypeErrorやUndefined method ... for nilのエラー
 end
 
 def search
   conditions = %w(詳細検索 朝日新聞デジタル アエラ 地域面 大阪 名古屋 西部 北海道)
+  # 詳細検索以外に関してはselectedの選択肢を外す
   within_frame(all("frame")[1]) do
     conditions.each do |condition|
       find("label", text: condition).trigger("click")
+      sleep(1) if condition == "詳細検索"
     end
     all("label", text: "週刊朝日")[1].trigger("click")
-    fill_in("txtWord", with: "訪日&中国人")
-    all("#optNotNavi6 select")[0].find("option[value='2015']").select_option
+    fill_in("txtWord", with: "訪日&中国人") # 検索KW
+    all("#optNotNavi6 select")[0].find("option[value='#{ARGV[2]}']").select_option
     all("#optNotNavi6 select")[1].find("option[value='01']").select_option
     all("#optNotNavi6 select")[2].find("option[value='01']").select_option
-    all("#optNotNavi6 select")[4].find("option[value='2015']").select_option
+    all("#optNotNavi6 select")[4].find("option[value='#{ARGV[2]}']").select_option
     all("#optNotNavi6 select")[5].find("option[value='12']").select_option
     all("#optNotNavi6 select")[6].find("option[value='31']").select_option
+    find("#optNotNavi9 select").find("option[value='100']").select_option
     all("input.btext")[0].trigger("click")
     sleep(5)
   end
 end
 
 def get_search_result
-  CSV.open("kikuzo_data.csv", "w") do |csv|
-    within_frame(all("frame")[1]) do
+  CSV.open("kikuzo_data_#{ARGV[2]}.csv", "w") do |csv|
+    within_frame(all("frame")[1]) do # frameではなくなった(!?)
       $data = []
-      for nth_tr in 0..40
+      posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
+      # for nth_tr in 0..40 # 記事数 * 2だけ
+      for nth_tr in 0..posts_count
         nth_tr % 2 == 0? even_row = nth_tr / 2 : odd_row = 1 + (nth_tr / 2)
         # odd_rowはheader of trを入れるところ、even_rowはcontent of trを入れるところ
         if nth_tr == 0
           $data << []
-          all("th").each { |th| $data[even_row] << th.text }
+          all("th.topic-list").each { |th| $data[even_row] << th.text }
         elsif nth_tr % 2 == 1 # header of tr
           $data << [] # ifのスコープ外で行を作成すると行数が無駄に増える
           within(all("table.topic-list tr")[nth_tr]) do
