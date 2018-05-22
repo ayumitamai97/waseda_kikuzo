@@ -79,7 +79,6 @@ def get_search_result
     within_frame(all("frame")[1]) do # frameではなくなった(!?)
       $data = []
       posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
-      # for nth_tr in 0..40 # 記事数 * 2だけ
       for nth_tr in 0..posts_count
         nth_tr % 2 == 0? even_row = nth_tr / 2 : odd_row = 1 + (nth_tr / 2)
         # odd_rowはheader of trを入れるところ、even_rowはcontent of trを入れるところ

@@ -66,6 +66,7 @@ def search
 end
 
 def get_search_result
+  find(".selectMenu select").find("option[value='200']").select_option
   all(".btnAreaCenter input")[0].trigger("click") # 一覧表示
   sleep(5)
   CSV.open("maisaku_data.csv", "w") do |csv|
