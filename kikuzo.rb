@@ -53,7 +53,7 @@ def login_outside_univ
 end
 
 def search
-  conditions = %w(詳細検索 朝日新聞デジタル アエラ 地域面 大阪 名古屋 西部 北海道)
+  conditions = %w(詳細検索 朝日新聞デジタル アエラ 本紙 大阪 名古屋 西部 北海道)
   # 詳細検索以外に関してはselectedの選択肢を外す
   within_frame(all("frame")[1]) do
     conditions.each do |condition|
@@ -75,7 +75,7 @@ def search
 end
 
 def get_search_result
-  CSV.open("kikuzo_data_#{ARGV[2]}.csv", "w") do |csv|
+  CSV.open("kikuzo_data_ryota_#{ARGV[2]}.csv", "w") do |csv|
     within_frame(all("frame")[1]) do # frameではなくなった(!?)
       $data = []
       posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
@@ -116,7 +116,7 @@ def get_search_result
   end
 end
 
-login_outside_univ
-# login_inside_univ
+# login_outside_univ
+login_inside_univ
 search
 get_search_result
