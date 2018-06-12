@@ -46,14 +46,14 @@ end
 def search
   within_frame(find("frame")) do
     find("#menu03 a").trigger("click")
-    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "訪日 AND 中国人")
+    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "訪日 AND 中国人 AND 爆買い")
     all("label", text: "個別に選択する")[0].trigger("click") # 全国版・地域版
     find("label", text: "全国版").trigger("click") # 全国版・地域版
     find("label", text: "100").trigger("click") # 記事100件取得
-    fill_in("yomiuriNewsSearchDto.txtSYear", with: "2015")
+    fill_in("yomiuriNewsSearchDto.txtSYear", with: "#{ARGV[2]}")
     fill_in("yomiuriNewsSearchDto.txtSMonth", with: "1")
     fill_in("yomiuriNewsSearchDto.txtSDay", with: "1")
-    fill_in("yomiuriNewsSearchDto.txtEYear", with: "2015")
+    fill_in("yomiuriNewsSearchDto.txtEYear", with: "#{ARGV[3]}")
     fill_in("yomiuriNewsSearchDto.txtEMonth", with: "12")
     fill_in("yomiuriNewsSearchDto.txtEDay", with: "31")
 
@@ -82,7 +82,7 @@ def get_trs
 end
 
 def get_search_result
-  CSV.open("yomidas_data.csv", "w") do |csv|
+  CSV.open("yomidas_data_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
       get_trs

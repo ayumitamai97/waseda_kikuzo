@@ -53,11 +53,11 @@ def search
   all("tr.middle label")[6].trigger("click") # 東京夕刊
   all("tr.middle label")[72].trigger("click") # 全て
   fill_in("paraTi", with: "訪日 AND 中国人 AND 爆買い")
-  find("select#paraYearFrom").find("option[value='2013']").select_option
+  find("select#paraYearFrom").find("option[value='#{ARGV[2]}']").select_option
   find("select#paraMonthFrom").find("option[value='1']").select_option
   find("select#paraDayFrom").find("option[value='1']").select_option
   all("select")[4].find("option[value='1']").select_option # 「から」を選択
-  find("select#paraYearTo").find("option[value='2017']").select_option
+  find("select#paraYearTo").find("option[value='#{ARGV[3]}']").select_option
   find("select#paraMonthTo").find("option[value='12']").select_option
   find("select#paraDayTo").find("option[value='31']").select_option
   all("input")[15].trigger("click") # 検索開始
@@ -70,7 +70,7 @@ def get_search_result
   find(".selectMenu select").find("option[value='200']").select_option
   all(".btnAreaCenter input")[0].trigger("click") # 一覧表示
   sleep(5)
-  CSV.open("maisaku_data_katsu.csv", "w") do |csv|
+  CSV.open("maisaku_data_katsu_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     $data = []
     for nth_tr in 0..posts_count # 検索記事数に合わせて変える
       within(all("table.resultList tr")[nth_tr]) do
