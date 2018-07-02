@@ -5,8 +5,9 @@ require "capybara/dsl"
 require "capybara/poltergeist"
 require "date"
 require "pry"
-require 'phantomjs'
-require 'csv'
+require "phantomjs"
+require "nokogiri"
+require "csv"
 
 Capybara.current_driver = :poltergeist
 
@@ -75,7 +76,7 @@ def search
 end
 
 def get_search_result
-  CSV.open("kikuzo_data_ayumi_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/kikuzo_data_with_content_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     within_frame(all("frame")[1]) do # frameではなくなった(!?)
       $data = []
       posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
@@ -102,6 +103,12 @@ def get_search_result
           $data << [] # ifのスコープ外で行を作成すると行数が無駄に増える
           within(all("table.topic-list tr")[nth_tr]) do
             $data[even_row] << find("td span a").text
+            find("td span a").trigger("click")
+            sleep 3
+            doc = Nokogiri::HTML(page.body)
+            $data[even_row] << doc.css(".detail001").inner_text
+            go_back
+            sleep 3
           end
         end
       end # end of nth_tr

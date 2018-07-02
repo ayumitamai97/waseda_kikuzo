@@ -4,6 +4,7 @@ require "capybara/poltergeist"
 require "date"
 require "pry"
 require 'phantomjs'
+require "nokogiri"
 require 'csv'
 
 Capybara.current_driver = :poltergeist
@@ -27,7 +28,7 @@ end
 
 include Capybara::DSL # 警告が出るが動く
 
-page.driver.headers = { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36" }
+page.driver.headers = { "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36" }
 
 def login_inside_univ
   visit "https://mainichi.jp/contents/edu/maisaku/login.html"
@@ -70,7 +71,7 @@ def get_search_result
   find(".selectMenu select").find("option[value='200']").select_option
   all(".btnAreaCenter input")[0].trigger("click") # 一覧表示
   sleep(5)
-  CSV.open("maisaku_data_katsu_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/maisaku_data_with_content_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     $data = []
     for nth_tr in 0..posts_count # 検索記事数に合わせて変える
       within(all("table.resultList tr")[nth_tr]) do
@@ -84,6 +85,12 @@ def get_search_result
         for num in -5..-1
           $data[nth_tr] << array[num] # タイトル以外
         end
+        find("td a").trigger("click")
+        sleep 5
+        doc = Nokogiri::HTML(page.body)
+        $data[nth_tr] << doc.css(".article").inner_text
+        go_back
+        sleep 5
       end
     end # end of nth_tr
     csv_data = CSV.generate() do |csv|

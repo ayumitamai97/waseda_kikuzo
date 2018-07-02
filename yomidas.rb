@@ -3,8 +3,10 @@ require "capybara/dsl"
 require "capybara/poltergeist"
 require "date"
 require "pry"
-require 'phantomjs'
-require 'csv'
+require "phantomjs"
+require "nokogiri"
+require "csv"
+require "sanitize"
 
 Capybara.current_driver = :poltergeist
 
@@ -41,9 +43,11 @@ def login_outside_univ
   sleep(5)
   visit find("a.A_button")[:href]
   sleep(5)
+  puts "Current URL is " + current_url
 end
 
 def search
+  sleep(5)
   within_frame(find("frame")) do
     find("#menu03 a").trigger("click")
     fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "訪日 AND 中国人 AND 爆買い")
@@ -59,7 +63,6 @@ def search
 
     find("input.search02").trigger("click")
     sleep(7)
-    save_screenshot "1.png"
   end
 end
 
@@ -77,12 +80,22 @@ def get_trs
         td_count += 1
         $data[nth_tr] << td.text
       end
+      # binding.pry
+      if nth_tr >= 1
+        find(".wp40 a").trigger("click")
+        sleep(3)
+        binding.pry
+        puts Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
+        $data[nth_tr] << Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0]) || 0
+        evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
+      end
+      sleep(3)
     end
   end
 end
 
 def get_search_result
-  CSV.open("yomidas_data_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/yomidas_data_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
       get_trs
