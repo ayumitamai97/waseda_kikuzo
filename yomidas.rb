@@ -69,7 +69,7 @@ end
 def get_trs
   posts_num = all(".flR")[0].text.gsub("件", "").split("～")
   page_posts_num = posts_num[1].to_i - (posts_num[0].to_i - 2)
-  for nth_tr in 0..page_posts_num # なぜか0..100じゃない？
+  for nth_tr in 0..page_posts_num
     within(all("tr")[nth_tr]) do
       $data << []
       all(".contentsTable th").each do |th|
@@ -80,22 +80,26 @@ def get_trs
         td_count += 1
         $data[nth_tr] << td.text
       end
-      # binding.pry
-      if nth_tr >= 1
-        find(".wp40 a").trigger("click")
-        sleep(3)
-        binding.pry
-        puts Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
-        $data[nth_tr] << Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0]) || 0
-        evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
+    end
+    if nth_tr >= 2
+      evaluate_script(all(".wp40 a")[nth_tr - 2][:onclick]) # マジックナンバー…
+      sleep(5)
+      begin
+        sanit = Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
+      rescue
+        sanit = "Error Caused in this content"
       end
+      puts sanit
+      # binding.pry
+      sanit.nil? ? 0 : $data[nth_tr] << sanit
+      evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
       sleep(3)
     end
   end
 end
 
 def get_search_result
-  CSV.open("csv/yomidas_data_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/yomidas_data_with_content_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
       get_trs
