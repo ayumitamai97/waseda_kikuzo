@@ -50,16 +50,16 @@ def search
   sleep(5)
   within_frame(find("frame")) do
     find("#menu03 a").trigger("click")
-    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "訪日 AND 中国人 AND 爆買い")
+    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "ビットコイン")
     all("label", text: "個別に選択する")[0].trigger("click") # 全国版・地域版
     find("label", text: "全国版").trigger("click") # 全国版・地域版
     find("label", text: "100").trigger("click") # 記事100件取得
-    fill_in("yomiuriNewsSearchDto.txtSYear", with: "#{ARGV[2]}")
-    fill_in("yomiuriNewsSearchDto.txtSMonth", with: "1")
-    fill_in("yomiuriNewsSearchDto.txtSDay", with: "1")
-    fill_in("yomiuriNewsSearchDto.txtEYear", with: "#{ARGV[3]}")
-    fill_in("yomiuriNewsSearchDto.txtEMonth", with: "12")
-    fill_in("yomiuriNewsSearchDto.txtEDay", with: "31")
+    # fill_in("yomiuriNewsSearchDto.txtSYear", with: "#{ARGV[2]}")
+    # fill_in("yomiuriNewsSearchDto.txtSMonth", with: "1")
+    # fill_in("yomiuriNewsSearchDto.txtSDay", with: "1")
+    # fill_in("yomiuriNewsSearchDto.txtEYear", with: "#{ARGV[3]}")
+    # fill_in("yomiuriNewsSearchDto.txtEMonth", with: "12")
+    # fill_in("yomiuriNewsSearchDto.txtEDay", with: "31")
 
     find("input.search02").trigger("click")
     sleep(7)
@@ -68,7 +68,8 @@ end
 
 def get_trs
   posts_num = all(".flR")[0].text.gsub("件", "").split("～")
-  page_posts_num = posts_num[1].to_i - (posts_num[0].to_i - 2)
+  page_posts_num = posts_num[1].to_i - (posts_num[0].to_i - 1)
+  # binding.pry
   for nth_tr in 0..page_posts_num
     within(all("tr")[nth_tr]) do
       $data << []
@@ -82,24 +83,24 @@ def get_trs
       end
     end
     if nth_tr >= 2
-      evaluate_script(all(".wp40 a")[nth_tr - 2][:onclick]) # マジックナンバー…
-      sleep(5)
       begin
+        evaluate_script(all(".wp40 a")[nth_tr - 2][:onclick]) # マジックナンバー…
+        sleep(7)
         sanit = Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
       rescue
         sanit = "Error Caused in this content"
+        # binding.pry
       end
       puts sanit
-      # binding.pry
       sanit.nil? ? 0 : $data[nth_tr] << sanit
       evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
-      sleep(3)
+      sleep(5)
     end
   end
 end
 
 def get_search_result
-  CSV.open("csv/yomidas_data_with_content_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/bitcoin_yomidas.csv", "w") do |csv|
     within_frame(find("frame")) do
       $data = []
       get_trs

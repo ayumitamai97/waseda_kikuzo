@@ -76,7 +76,7 @@ def search
 end
 
 def get_search_result
-  CSV.open("csv/kikuzo_data_with_content_#{ARGV[2]}to#{ARGV[3]}.csv", "w") do |csv|
+  CSV.open("csv/bitcoin_kikuzo.csv", "w") do |csv|
     within_frame(all("frame")[1]) do # frameではなくなった(!?)
       $data = []
       posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
