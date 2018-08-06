@@ -50,7 +50,7 @@ def search
   sleep(5)
   within_frame(find("frame")) do
     find("#menu03 a").trigger("click")
-    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "ビットコイン")
+    fill_in("yomiuriNewsSearchDto.txtWordSearch", with: "仮想通貨")
     all("label", text: "個別に選択する")[0].trigger("click") # 全国版・地域版
     find("label", text: "全国版").trigger("click") # 全国版・地域版
     find("label", text: "100").trigger("click") # 記事100件取得
@@ -67,47 +67,59 @@ def search
 end
 
 def get_trs
-  posts_num = all(".flR")[0].text.gsub("件", "").split("～")
-  page_posts_num = posts_num[1].to_i - (posts_num[0].to_i - 1)
-  # binding.pry
-  for nth_tr in 0..page_posts_num
-    within(all("tr")[nth_tr]) do
-      $data << []
-      all(".contentsTable th").each do |th|
-        $data[nth_tr] << th.text
-      end
-      td_count = -1
-      all(".contentsTable td").each do |td|
-        td_count += 1
-        $data[nth_tr] << td.text
-      end
-    end
-    if nth_tr >= 2
+  pagenation_count = all(".pageBox a")[-1].text.to_i
+  puts ">>>>> Total " + pagenation_count.to_s + " pages"
+  for pagenation in 1..pagenation_count
+    puts ">>>>> " + pagenation.to_s + "th page starting"
+    posts_num_with_tilde = all(".flR")[0].text.gsub("件", "").split("～")
+    posts_num_per_page = posts_num_with_tilde[1].to_i - (posts_num_with_tilde[0].to_i - 2)
+    for nth_tr in 0..posts_num_per_page
       begin
-        evaluate_script(all(".wp40 a")[nth_tr - 2][:onclick]) # マジックナンバー…
-        sleep(7)
-        sanit = Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
+        puts ">>>>> " + nth_tr.to_s + " th tr" + " in " + pagenation.to_s + " th page"
+        within(all("tr")[nth_tr]) do
+          $data << []
+          all(".contentsTable th").each do |th|
+            $data[nth_tr] << th.text
+          end
+          td_count = -1
+          all(".contentsTable td").each do |td|
+            td_count += 1
+            $data[nth_tr] << td.text
+          end
+        end
+        if nth_tr >= 2
+          begin
+            evaluate_script(all(".wp40 a")[nth_tr - 2][:onclick]) # マジックナンバー…
+            sleep(2)
+            sanit = Sanitize.clean(page.body.scan(%r{<p class="mb10">(.+?)</p>})[0][0])
+          rescue
+            sanit = "Error Caused in this content"
+          end
+          puts sanit
+          sanit.nil? ? 0 : $data[nth_tr] << sanit
+          evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
+          sleep(3)
+        end
       rescue
-        sanit = "Error Caused in this content"
-        # binding.pry
+        retry
+        sleep 1
       end
-      puts sanit
-      sanit.nil? ? 0 : $data[nth_tr] << sanit
-      evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
-      sleep(5)
+      begin
+        if !all(".pageBox a", text: ( pagenation + 1 ).to_s)[0][:onclick]&.nil?
+          execute_script(all(".pageBox a", text: (pagenation + 1 ))[0][:onclick])
+          sleep(3)
+        end
+      rescue
+        break if pagenation == all(".pageBox a")[-1].text.to_i
+      end
     end
   end
 end
 
 def get_search_result
-  CSV.open("csv/bitcoin_yomidas.csv", "w") do |csv|
+  CSV.open("csv/crypt_yomidas.csv", "a") do |csv|
     within_frame(find("frame")) do
       $data = []
-      get_trs
-      evaluate_script(
-        "pageSortSubmit('yomiuriNewsPageSearchList.action',
-         'search', 100, '0', 'DESC', 'PBLSDT');return false;") # 2ページ目用
-      sleep(5)
       get_trs
     end # end if within_frame
     csv_data = CSV.generate() do |csv|
@@ -122,5 +134,6 @@ end
 
 login_outside_univ
 # login_inside_univ
+# binding.pry
 search
 get_search_result
