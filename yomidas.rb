@@ -14,7 +14,6 @@ Capybara.configure do |config|
   config.run_server = false
   config.javascript_driver = :poltergeist
   config.app_host = "https://database.yomiuri.co.jp" # 学内
-  # config.app_host = "https://database.yomiuri.co.jp.ez.wul.waseda.ac.jp" # 学外ではapp_hostを使わない
   config.default_max_wait_time = 30
   config.ignore_hidden_elements = false
 end
@@ -80,7 +79,6 @@ def get_trs
         puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + nth_tr.to_s + " th tr" + " in " + pagenation.to_s + " th page"
         within(all("tr")[nth_tr]) do
           puts ">>>>>>>> current $data is: "  
-          puts $data
           $data << []
           all(".contentsTable th").each do |th|
             $data[nth_tr] << th.text

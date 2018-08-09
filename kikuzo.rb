@@ -15,7 +15,6 @@ Capybara.configure do |config|
   config.run_server = false
   config.javascript_driver = :poltergeist
   config.app_host = "http://database.asahi.com" # 学内
-  # config.app_host = "http://database.asahi.com.ez.wul.waseda.ac.jp" # 学外ではapp_hostを使わない
   config.default_max_wait_time = 120
   config.ignore_hidden_elements = false
 end
@@ -87,8 +86,6 @@ def get_search_result
 
       for nth_page in 1..pagenation
         posts_count = all(".fontcolor001")[1].text.split("～")[1].to_i * 2
-        
-        1000.times { $data << [] }
 
         for nth_tr in 0..posts_count
           puts nth_tr.to_s + " th tr in " + nth_page.to_s + " th page"
