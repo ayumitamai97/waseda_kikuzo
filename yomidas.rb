@@ -27,8 +27,8 @@ end
 
 include Capybara::DSL # 警告が出るが動く
 
-page.driver.headers = { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36" }
-page.driver.resize_window(1200, 768)
+page.driver.headers = { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/536.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/536.36" }
+page.driver.resize_window(1200, 668)
 
 def login_inside_univ
   visit "/rekishikan/"
@@ -62,21 +62,25 @@ def search
     # fill_in("yomiuriNewsSearchDto.txtEDay", with: "31")
 
     find("input.search02").trigger("click")
-    sleep(7)
+    sleep(6)
   end
 end
 
 def get_trs
   pagenation_count = all(".pageBox a")[-1].text.to_i
   puts ">>>>> Total " + pagenation_count.to_s + " pages"
-  for pagenation in 1..pagenation_count
+
+  for pagenation in 1..pagenation_count  
     puts ">>>>> " + pagenation.to_s + "th page starting"
     posts_num_with_tilde = all(".flR")[0].text.gsub("件", "").split("～")
     posts_num_per_page = posts_num_with_tilde[1].to_i - (posts_num_with_tilde[0].to_i - 2)
     for nth_tr in 0..posts_num_per_page
       begin
-        puts ">>>>> " + nth_tr.to_s + " th tr" + " in " + pagenation.to_s + " th page"
+        $data << []
+        puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + nth_tr.to_s + " th tr" + " in " + pagenation.to_s + " th page"
         within(all("tr")[nth_tr]) do
+          puts ">>>>>>>> current $data is: "  
+          puts $data
           $data << []
           all(".contentsTable th").each do |th|
             $data[nth_tr] << th.text
@@ -96,7 +100,7 @@ def get_trs
             sanit = "Error Caused in this content"
           end
           puts sanit
-          sanit.nil? ? 0 : $data[nth_tr] << sanit
+          $data[nth_tr] << sanit
           evaluate_script("execute(document.forms['article'], 'yomiuriNewsPageSearchList.action');return false;")
           sleep(3)
         end
@@ -105,10 +109,12 @@ def get_trs
         sleep 1
       end
       begin
-        if !all(".pageBox a", text: ( pagenation + 1 ).to_s)[0][:onclick]&.nil?
-          execute_script(all(".pageBox a", text: (pagenation + 1 ))[0][:onclick])
-          sleep(3)
+        if !all("a", text: "次の#{POSTS_PER_PAGE}件")[0].nil? && pagenation == 6
+          all("a", text: "次の#{POSTS_PER_PAGE}件")[0].trigger("click")
+        elsif pagenation == 6
+          all("a", text: "次のページ >")[0]&.trigger("click")
         end
+        sleep(3)
       rescue
         break if pagenation == all(".pageBox a")[-1].text.to_i
       end
@@ -117,7 +123,7 @@ def get_trs
 end
 
 def get_search_result
-  CSV.open("csv/crypt_yomidas.csv", "a") do |csv|
+  CSV.open("csv/crypt_yomidas_new.csv", "a") do |csv|
     within_frame(find("frame")) do
       $data = []
       get_trs
@@ -134,6 +140,5 @@ end
 
 login_outside_univ
 # login_inside_univ
-# binding.pry
 search
 get_search_result
