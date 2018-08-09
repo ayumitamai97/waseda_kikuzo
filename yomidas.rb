@@ -78,7 +78,6 @@ def get_trs
         $data << []
         puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + nth_tr.to_s + " th tr" + " in " + pagenation.to_s + " th page"
         within(all("tr")[nth_tr]) do
-          puts ">>>>>>>> current $data is: "  
           $data << []
           all(".contentsTable th").each do |th|
             $data[nth_tr] << th.text

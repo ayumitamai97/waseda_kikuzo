@@ -95,10 +95,7 @@ def get_search_result
             odd_row = 1 + (nth_tr / 2) + nth_page * ( nth_page - 1 )
           end
           # odd_rowはheader of trを入れるところ、even_rowはcontent of trを入れるところ
-          
-          puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> current $data is:"
-          puts $data
-          
+                    
           $data << []
 
             if nth_tr == 0
